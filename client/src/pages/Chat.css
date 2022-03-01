@@ -1,0 +1,16 @@
+.sidebar {
+  width: 150px;
+  overflow-x: hidden;
+  padding-top: 22px;
+
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: rgb(186, 220, 240);
+  padding-top: 22px;
+}
+.body {
+  background-color: rgb(230, 230, 240);
+  height: 100%;
+  margin: 0;
+}

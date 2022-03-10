@@ -16,6 +16,17 @@ function Chat() {
   const [usersOnline, setUsersOnline] = useState([]);
   const [toUser, setToUser] = useState("");
   const history = useHistory();
+  const [search, setNewSearch] = useState("");
+
+  const handleSearchChange = (e) => {
+    setNewSearch(e.target.value);
+  };
+
+  const filtered = !search
+    ? usersOnline
+    : usersOnline.filter((person) =>
+        person.toLowerCase().includes(search.toLowerCase())
+      );
 
   useEffect(() => {
     if (!localStorage.getItem("chatConnected")) {
@@ -58,7 +69,7 @@ function Chat() {
 
     socket.on("user-disconnected", (user) => {
       if (user !== null) {
-        setChat([...chat, `${user} left the chat 👋🏻`]);
+        setChat([...chat, `${user} left the chat `]);
       }
     });
 
@@ -102,11 +113,12 @@ function Chat() {
       setChat([...chat, `🔒 Private Message for ${toUser}: ${msg}`]);
       setMsg("");
       setToUser("");
-    } else {
-      socket.emit("chat message", { nickname, msg });
-      setChat([...chat, { nickname, msg }]);
-      setMsg("");
     }
+    // else {
+    //   socket.emit("chat message", { nickname, msg });
+    //   setChat([...chat, { nickname, msg }]);
+    //   setMsg("");
+    // }
   };
 
   const saveUserToPrivateMsg = (userID) => {
@@ -118,26 +130,31 @@ function Chat() {
       <Toaster />
       <div className='flex w-full lg:w-5/6 lg:h-5/6 lg:mx-auto lg:my-auto shadow-md'>
         {/* Users online */}
-        <div className='sidebar'>
+        <div className='hidden lg:block pl-4 pr-4 w-64 bg-blue-900 text-black'>
           <Typography variant='h5' gutterBottom component='div'>
             {" "}
             # Online: ({usersOnline !== null ? usersOnline.length : "0"}):
           </Typography>
-          <ul className='divide-y divide-gray-300 truncate'>
-            {usersOnline !== null
-              ? usersOnline.map((el, index) => (
-                  <button
-                    key={index}
-                    onClick={() => saveUserToPrivateMsg(el)}
-                    className='block focus:outline-none truncate'
-                  >
-                    <UserOnline nickname={el} />
-                  </button>
-                ))
-              : ""}
-          </ul>
+
+          <input
+            type='text'
+            placeholder='search'
+            value={search}
+            onChange={handleSearchChange}
+          />
+          {filtered.map((person) => {
+            return (
+              <button
+                key={person.id}
+                onClick={() => saveUserToPrivateMsg(person)}
+                className='block focus:outline-none truncate'
+              >
+                <UserOnline nickname={person} />
+              </button>
+            );
+          })}
         </div>
-        <div className='body'>
+        <div className='flex flex-col flex-grow lg:max-w-full bg-gray-50'>
           {/* Messages */}
           <Typography variant='h5' gutterBottom component='div'>
             Main Chat
@@ -155,7 +172,7 @@ function Chat() {
                   {el.nickname != null ? (
                     `${el.nickname}: ${el.msg}`
                   ) : (
-                    <p className='text-base font-semibold text-purple-900 rounded py-1'>
+                    <p className='text-base font-semibold text-black-900 rounded py-1'>
                       {el}
                     </p>
                   )}
@@ -166,13 +183,13 @@ function Chat() {
           <form className=''>
             <div className='px-8'>
               <select
-                className='lg:hidden text-xs flex-1 appearance-none border border-gray-300 w-full py-2 px-1 lg:px-4 bg-white text-green-400 placeholder-gray-400 shadow-sm focus:outline-none'
+                className='lg:hidden text-xs flex-1 appearance-none border border-gray-300 w-full py-2 px-1 lg:px-4 bg-black text-green-400 placeholder-gray-400 shadow-sm focus:outline-none'
                 id='usersOn'
                 onChange={(e) => saveUserToPrivateMsg(e.target.value)}
               >
-                <option value='' className=''>
+                {/* <option value='' className=''>
                   Everyone
-                </option>
+                </option> */}
                 {usersOnline !== null
                   ? usersOnline.map((el, index) => (
                       <option value={el} className='' key={index}>
@@ -182,18 +199,16 @@ function Chat() {
                   : ""}
               </select>
             </div>
-            <div className='w-full flex p-4 lg:p-8 bg-purple-50'>
+            <div className='w-full flex p-4 lg:p-8 bg-gray-50'>
               {" "}
               <div className='flex relative w-full lg:w-5/6'>
                 <span className='rounded-l-md inline-flex items-center px-1 lg:px-3 border-t bg-white border-l border-b  border-gray-300 text-gray-500 shadow-sm text-sm'>
-                  {toUser === "" ? (
-                    <p className='bg-purple-400 text-white text-xs lg:text-base font-normal rounded p-1'>
-                      To: Everyone
-                    </p>
-                  ) : (
-                    <p className='bg-purple-700 text-white text-xs lg:text-base font-semibold rounded p-1 w-20 lg:w-28 truncate'>
+                  {toUser !== "" ? (
+                    <p className='bg-gray-700 text-white text-xs lg:text-base font-semibold rounded p-1 w-20 lg:w-28 truncate'>
                       To: {toUser}
                     </p>
+                  ) : (
+                    ""
                   )}
                 </span>
                 <TextField
